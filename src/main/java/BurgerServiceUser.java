@@ -5,4 +5,5 @@ public interface BurgerServiceUser {
     ValidatableResponse createOrder(Order order);
     ValidatableResponse deleteUser(User user);
     ValidatableResponse updateUser(User user, String accessToken);
+    ValidatableResponse getUser(String accessToken);
 }

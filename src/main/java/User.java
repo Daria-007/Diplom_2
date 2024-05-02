@@ -1,7 +1,7 @@
 public class User {
-    private final String email;
-    private final String password;
-    private final String name;
+    private String email;
+    private String password;
+    private String name;
 
     public static User create(String email, String password, String name){
         return new User(email,password, name);
@@ -21,6 +21,12 @@ public class User {
     }
     public String getName(){
         return name;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public void setName(String name) {
+        this.name = name;
     }
 
 }
