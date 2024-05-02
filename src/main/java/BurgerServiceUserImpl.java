@@ -8,6 +8,7 @@ public class BurgerServiceUserImpl implements BurgerServiceUser {
     private static final String LOGIN_ENDPOINT = "/api/auth/login";
     private static final String GET_ORDERS_ENDPOINT = "/api/orders";
     private static final String DELETE_USER_ENDPOINT = "/api/auth/user";
+    private static final String UPDATE_USER_ENDPOINT = "/api/auth/user";
     private final RequestSpecification requestSpecification;
     private final ResponseSpecification responseSpecification;
 
@@ -51,6 +52,20 @@ public class BurgerServiceUserImpl implements BurgerServiceUser {
         return given()
                 .spec(requestSpecification)
                 .delete(DELETE_USER_ENDPOINT)
+                .then()
+                .spec(responseSpecification);
+    }
+    @Override
+    public ValidatableResponse updateUser(User user, String accessToken) {
+        RequestSpecification requestSpecificationWithAuth = requestSpecification;
+        if (accessToken != null) {
+            requestSpecificationWithAuth = requestSpecificationWithAuth.auth().oauth2(accessToken);
+        }
+
+        return given()
+                .spec(requestSpecificationWithAuth)
+                .body(user)
+                .patch(UPDATE_USER_ENDPOINT)
                 .then()
                 .spec(responseSpecification);
     }

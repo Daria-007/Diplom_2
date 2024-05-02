@@ -2,7 +2,6 @@ import io.qameta.allure.Step;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 
 public class UserTest extends BaseTest {
@@ -24,17 +23,15 @@ public class UserTest extends BaseTest {
     @Test
     @Step("Creating a unique user")
     public void testCreateUniqueUser() {
-        testUser = User.create("test-data@yandex.ru", "password", "Username");
+        testUser = User.create("test15@yandex.ru", "password", "Username");
         burgerServiceUser.createUser(testUser)
-                .statusCode(403)
-                .body("success", equalTo(false))
-                .body("message", equalTo("User already exists"));
+                .statusCode(200)
+                .body("success", equalTo(true));
     }
 
     @Test
     @Step("Creating a duplicate user")
     public void testCreateDuplicateUser() {
-        // First, let's create a user
         testUser = User.create("test-data@yandex.ru", "password", "Username");
         burgerServiceUser.createUser(testUser)
                 .statusCode(403)
