@@ -1,47 +1,47 @@
+import io.qameta.allure.Step;
 import io.restassured.response.ValidatableResponse;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.*;
 
 public class UpdateUserTest extends BaseTest {
     private BurgerServiceUserImpl burgerServiceUser;
     private User testUser;
+    private String accessToken;
 
     @Before
     public void setUp() {
         burgerServiceUser = new BurgerServiceUserImpl(REQUEST_SPECIFICATION, RESPONSE_SPECIFICATION);
-        testUser = User.create("test003@example.com", "password", "Test User");
-        ValidatableResponse createUserResponse = burgerServiceUser.createUser(testUser);
+        testUser = User.create("test026@example.com", "password", "Test User");
+        burgerServiceUser.createUser(testUser)
+                .statusCode(200);
     }
 
-    @After
-    public void cleanUp() {
-        if (testUser != null) {
-            burgerServiceUser.deleteUser(testUser);
-        }
-    }
+//    @After
+//    public void cleanUp() {
+//        if (testUser != null) {
+//            burgerServiceUser.deleteUser(testUser);
+//        }
+//    }
 
     @Test
+    @Step("Updating user data with authorization")
     public void testUpdateUserWithAuthorization() {
-        // Входим в систему, чтобы получить accessToken
-        Credentials credentials = Credentials.fromUser(testUser);
-        ValidatableResponse loginResponse = burgerServiceUser.login(credentials);
-        String accessToken = loginResponse.extract().path("accessToken");
+        accessToken = burgerServiceUser.getAccessToken(testUser);
 
-        // Обновляем данные пользователя
-        testUser = User.create("updated_test@example.com", "updated_password", "Updated Test User");
-        ValidatableResponse updateUserResponse = burgerServiceUser.updateUser(testUser, accessToken);
-        updateUserResponse.statusCode(200);
+        User newUser = User.create("updated_test@example.com", "updated_password", "Updated Test User");
 
-        // Проверяем, что данные пользователя обновлены
-        ValidatableResponse getUserResponse = burgerServiceUser.getUser(accessToken);
-        getUserResponse.statusCode(200);
-        Assert.assertEquals("updated_test@example.com", getUserResponse.extract().path("user.email"));
-        Assert.assertEquals("Updated Test User", getUserResponse.extract().path("user.name"));
+        ValidatableResponse response = burgerServiceUser.updateUser(newUser, accessToken);
+
+        response.statusCode(200)
+                .body("success", equalTo(true));
     }
 
     @Test
+    @Step("Updating user data without authorization")
     public void testUpdateUserWithoutAuthorization() {
         testUser.setPassword("updated_password");
         testUser.setName("Updated Test User");

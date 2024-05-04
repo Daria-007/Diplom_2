@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-public class UserTest extends BaseTest {
+public class RegisterTest extends BaseTest {
     private BurgerServiceUserImpl burgerServiceUser;
     private User testUser;
 
@@ -23,7 +23,7 @@ public class UserTest extends BaseTest {
     @Test
     @Step("Creating a unique user")
     public void testCreateUniqueUser() {
-        testUser = User.create("test15@yandex.ru", "password", "Username");
+        testUser = User.create("test16@yandex.ru", "password", "Username");
         burgerServiceUser.createUser(testUser)
                 .statusCode(200)
                 .body("success", equalTo(true));

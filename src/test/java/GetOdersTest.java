@@ -1,9 +1,10 @@
+import io.qameta.allure.Step;
 import io.restassured.response.ValidatableResponse;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import java.util.List;
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
 
 public class GetOdersTest extends BaseTest {
     private BurgerServiceUser burgerServiceUser;
@@ -21,33 +22,34 @@ public class GetOdersTest extends BaseTest {
         }
     }
     @Test
+    @Step("Test to verify the retrieval of orders for an authenticated user")
     public void testGetOrdersAuthenticatedUser() {
-        // Создание тестового пользователя
-        User testUser = User.create("testooo4@example.com", "password123", "Test User");
-        burgerServiceUser.createUser(testUser).statusCode(200);
+        User testUser = User.create("testooo70@example.com", "password123", "Test User");
+        ValidatableResponse createUserResponse = burgerServiceUser.createUser(testUser);
+        createUserResponse.statusCode(200);
 
-        // Авторизация пользователя и получение токена доступа
-        Credentials credentials = Credentials.fromUser(testUser);
-        String accessToken = burgerServiceUser.login(credentials).extract().path("accessToken");
+        String accessToken = createUserResponse.log().all().extract().path("accessToken").toString();
+        createUserResponse.log().all()
+                .assertThat().statusCode(200)
+                .and().body("success", is(true))
+                .and().body("accessToken", notNullValue())
+                .and().body("refreshToken", notNullValue());
 
-        // Создание заказов
-        burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9", "60d3463f7034a000269f45e7")));
+        burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9")));
         burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9")));
 
-        // Обновление данных пользователя
-        burgerServiceUser.updateUser(testUser, accessToken);
+        // Запрос информации о пользователе с использованием полученного токена доступа
+        ValidatableResponse userInfoResponse = burgerServiceUser.getUser(accessToken);
 
-        // Получение информации о пользователе и его заказах
-        ValidatableResponse response = burgerServiceUser.getUser(accessToken);
-        response.statusCode(200);
-
-        // Проверка информации о заказах пользователя
-        response.body("orders.size()", equalTo(2));
-        response.body("total", equalTo(2));
-        response.body("totalToday", equalTo(2));
+        userInfoResponse
+                .statusCode(200)
+                .body("orders.size()", equalTo(2))
+                .body("total", equalTo(2))
+                .body("totalToday", equalTo(2));
     }
 
     @Test
+    @Step("Test to verify the retrieval of orders for an unauthenticated user")
     public void testGetOrdersUnauthenticatedUser() {
         burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9", "60d3463f7034a000269f45e7")));
         burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9")));
@@ -61,5 +63,4 @@ public class GetOdersTest extends BaseTest {
         response.body("total", equalTo(null));
         response.body("totalToday", equalTo(null));
     }
-
 }
