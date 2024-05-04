@@ -23,7 +23,7 @@ public class RegisterTest extends BaseTest {
     @Test
     @Step("Creating a unique user")
     public void testCreateUniqueUser() {
-        testUser = User.create("test16@yandex.ru", "password", "Username");
+        testUser = User.create("test31@yandex.ru", "password", "Username");
         burgerServiceUser.createUser(testUser)
                 .statusCode(200)
                 .body("success", equalTo(true));

@@ -15,17 +15,17 @@ public class UpdateUserTest extends BaseTest {
     @Before
     public void setUp() {
         burgerServiceUser = new BurgerServiceUserImpl(REQUEST_SPECIFICATION, RESPONSE_SPECIFICATION);
-        testUser = User.create("test026@example.com", "password", "Test User");
+        testUser = User.create("test029@example.com", "password", "Test User");
         burgerServiceUser.createUser(testUser)
                 .statusCode(200);
     }
 
-//    @After
-//    public void cleanUp() {
-//        if (testUser != null) {
-//            burgerServiceUser.deleteUser(testUser);
-//        }
-//    }
+    @After
+    public void cleanUp() {
+        if (testUser != null) {
+            burgerServiceUser.deleteUser(testUser);
+        }
+    }
 
     @Test
     @Step("Updating user data with authorization")
