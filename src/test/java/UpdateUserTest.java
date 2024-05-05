@@ -5,7 +5,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
 
 public class UpdateUserTest extends BaseTest {
     private BurgerServiceUserImpl burgerServiceUser;
@@ -15,7 +14,7 @@ public class UpdateUserTest extends BaseTest {
     @Before
     public void setUp() {
         burgerServiceUser = new BurgerServiceUserImpl(REQUEST_SPECIFICATION, RESPONSE_SPECIFICATION);
-        testUser = User.create("test029@example.com", "password", "Test User");
+        testUser = User.create("test044@example.com", "password", "Test User");
         burgerServiceUser.createUser(testUser)
                 .statusCode(200);
     }
@@ -30,15 +29,22 @@ public class UpdateUserTest extends BaseTest {
     @Test
     @Step("Updating user data with authorization")
     public void testUpdateUserWithAuthorization() {
-        accessToken = burgerServiceUser.getAccessToken(testUser);
+        Credentials credentials = Credentials.fromUser(testUser);
+        ValidatableResponse userLogin = burgerServiceUser.login(credentials);
+        userLogin.assertThat()
+                .statusCode(200)
+                .and().body("success", equalTo(true));
 
-        User newUser = User.create("updated_test@example.com", "updated_password", "Updated Test User");
+        accessToken = userLogin.extract().path("accessToken");
 
-        ValidatableResponse response = burgerServiceUser.updateUser(newUser, accessToken);
-
-        response.statusCode(200)
-                .body("success", equalTo(true));
+        testUser.setName("UpdateUserName1");
+        testUser.setEmail("UpdateUserEmail11@yandex.ru");
+        ValidatableResponse changeUserData = burgerServiceUser.updateUser(testUser, accessToken);
+        changeUserData.assertThat()
+                .statusCode(200)
+                .and().body("success", equalTo(true));
     }
+
 
     @Test
     @Step("Updating user data without authorization")

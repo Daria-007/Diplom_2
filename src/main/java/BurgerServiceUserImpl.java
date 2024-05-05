@@ -54,6 +54,7 @@ public class BurgerServiceUserImpl implements BurgerServiceUser {
     public ValidatableResponse deleteUser(User user) {
         return given()
                 .spec(requestSpecification)
+                .body(user)
                 .delete(DELETE_USER_ENDPOINT)
                 .then()
                 .spec(responseSpecification);
@@ -61,13 +62,9 @@ public class BurgerServiceUserImpl implements BurgerServiceUser {
 
     @Override
     public ValidatableResponse updateUser(User user, String accessToken) {
-        RequestSpecification requestSpecificationWithAuth = requestSpecification;
-        if (accessToken != null) {
-            requestSpecificationWithAuth = requestSpecificationWithAuth.auth().oauth2(accessToken);
-        }
-
         return given()
-                .spec(requestSpecificationWithAuth)
+                .spec(requestSpecification)
+                .headers("Authorization", accessToken)
                 .body(user)
                 .patch(UPDATE_USER_ENDPOINT)
                 .then()
@@ -76,13 +73,9 @@ public class BurgerServiceUserImpl implements BurgerServiceUser {
 
     @Override
     public ValidatableResponse getUser(String accessToken) {
-        RequestSpecification requestSpecificationWithAuth = requestSpecification;
-        if (accessToken != null) {
-            requestSpecificationWithAuth = requestSpecificationWithAuth.auth().oauth2(accessToken);
-        }
-
         return given()
-                .spec(requestSpecificationWithAuth)
+                .spec(requestSpecification)
+                .headers("Authorization", accessToken)
                 .get(GET_USER_ENDPOINT)
                 .then()
                 .spec(responseSpecification);

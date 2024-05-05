@@ -1,4 +1,3 @@
-import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 public interface BurgerServiceUser {
     ValidatableResponse createUser(User user);
