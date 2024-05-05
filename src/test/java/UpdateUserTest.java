@@ -14,7 +14,7 @@ public class UpdateUserTest extends BaseTest {
     @Before
     public void setUp() {
         burgerServiceUser = new BurgerServiceUserImpl(REQUEST_SPECIFICATION, RESPONSE_SPECIFICATION);
-        testUser = User.create("test044@example.com", "password", "Test User");
+        testUser = User.create("test050@example.com", "password", "Test User");
         burgerServiceUser.createUser(testUser)
                 .statusCode(200);
     }
@@ -49,11 +49,14 @@ public class UpdateUserTest extends BaseTest {
     @Test
     @Step("Updating user data without authorization")
     public void testUpdateUserWithoutAuthorization() {
-        testUser.setPassword("updated_password");
-        testUser.setName("Updated Test User");
-        ValidatableResponse updateUserResponse = burgerServiceUser.updateUser(testUser, null);
+        // Создание пользователя для обновления данных
+        User userToUpdate = User.create("test047@example.com", "password", "Test User");
 
+        // Обновление данных пользователя без передачи токена доступа
+        ValidatableResponse updateUserResponse = burgerServiceUser.updateUser(userToUpdate, "");
+
+        // Проверка полученного ответа
         updateUserResponse.statusCode(401);
-        Assert.assertEquals("You should be authorised", updateUserResponse.extract().path("message"));
+        updateUserResponse.assertThat().body("message", equalTo("You should be authorised"));
     }
 }
