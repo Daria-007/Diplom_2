@@ -1,3 +1,4 @@
+import com.github.javafaker.Faker;
 import io.qameta.allure.Step;
 import io.restassured.response.ValidatableResponse;
 import org.junit.After;
@@ -10,13 +11,12 @@ public class UpdateUserTest extends BaseTest {
     private BurgerServiceUserImpl burgerServiceUser;
     private User testUser;
     private String accessToken;
+    private final Faker faker = new Faker();
+
 
     @Before
     public void setUp() {
         burgerServiceUser = new BurgerServiceUserImpl(REQUEST_SPECIFICATION, RESPONSE_SPECIFICATION);
-        testUser = User.create("test050@example.com", "password", "Test User");
-        burgerServiceUser.createUser(testUser)
-                .statusCode(200);
     }
 
     @After
@@ -29,6 +29,9 @@ public class UpdateUserTest extends BaseTest {
     @Test
     @Step("Updating user data with authorization")
     public void testUpdateUserWithAuthorization() {
+        testUser = User.create(Faker.instance().internet().emailAddress(), "password", Faker.instance().name().username());
+        burgerServiceUser.createUser(testUser)
+                .statusCode(200);
         Credentials credentials = Credentials.fromUser(testUser);
         ValidatableResponse userLogin = burgerServiceUser.login(credentials);
         userLogin.assertThat()
@@ -49,13 +52,13 @@ public class UpdateUserTest extends BaseTest {
     @Test
     @Step("Updating user data without authorization")
     public void testUpdateUserWithoutAuthorization() {
-        // Создание пользователя для обновления данных
+        testUser = User.create(Faker.instance().internet().emailAddress(), "password", Faker.instance().name().username());
+        burgerServiceUser.createUser(testUser)
+                .statusCode(200);
         User userToUpdate = User.create("test047@example.com", "password", "Test User");
 
-        // Обновление данных пользователя без передачи токена доступа
         ValidatableResponse updateUserResponse = burgerServiceUser.updateUser(userToUpdate, "");
 
-        // Проверка полученного ответа
         updateUserResponse.statusCode(401);
         updateUserResponse.assertThat().body("message", equalTo("You should be authorised"));
     }

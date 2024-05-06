@@ -1,6 +1,9 @@
+import com.github.javafaker.Faker;
 import io.qameta.allure.Step;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -16,6 +19,7 @@ public class OrderCreationTest extends BaseTest{
     private BurgerServiceUser burgerServiceUser;
     private User testUser;
     private String accessToken;
+    private final Faker faker = new Faker();
 
     @Before
     public void setUp() {
@@ -32,14 +36,18 @@ public class OrderCreationTest extends BaseTest{
     @Test
     @Step("Test creation of order with authorization and ingredients")
     public void testCreateOrderWithAuthorizationAndIngredients() {
-        User testUser = User.create("test333@burger.com", "password123", "Test User");
-        burgerServiceUser.createUser(testUser);
-
+        testUser = User.create(Faker.instance().internet().emailAddress(), "password", Faker.instance().name().username());
+        burgerServiceUser.createUser(testUser)
+                .statusCode(200);
         Credentials credentials = Credentials.fromUser(testUser);
-        ValidatableResponse loginResponse = burgerServiceUser.login(credentials);
-        String accessToken = loginResponse.extract().path("accessToken");
+        ValidatableResponse userLogin = burgerServiceUser.login(credentials);
+        userLogin.assertThat()
+                .statusCode(200)
+                .and().body("success", equalTo(true));
 
-        Order order = new Order(List.of("invalid_hash_1", "invalid_hash_2"));
+        accessToken = userLogin.extract().path("accessToken");
+
+        Order order = new Order(List.of("i60d3463f7034a000269f45e9", "60d3463f7034a000269f45e9"));
         burgerServiceUser.createOrder(order);
 
         burgerServiceUser.createOrder(order)
@@ -50,7 +58,7 @@ public class OrderCreationTest extends BaseTest{
     @Test
     @Step("Test creation of order without authorization")
     public void testCreateOrderWithoutAuthorization() {
-        User testUser = User.create("test998@example.com", "password123", "Test User");
+        testUser = User.create(Faker.instance().internet().emailAddress(), "password", Faker.instance().name().username());
         burgerServiceUser.createUser(testUser);
 
         Response ingredientsResponse = given()
@@ -76,30 +84,22 @@ public class OrderCreationTest extends BaseTest{
         Assert.assertEquals("You should be authorised", errorMessage);
     }
 
-//    @Test
-//    public void testOrderCreationWithoutIngredients() {
-//        Order order = new Order("[]");
-//
-//        Response response = burgerServiceUser.createOrder(order)
-//                .statusCode(400)
-//                .extract()
-//                .response();
-//
-//
-//        String errorMessage = response.getBody().jsonPath().get("message");
-//        Assert.assertEquals("One or more ids provided are incorrect", errorMessage);
-//    }
+
 
     @Test
     @Step("Test creation of order without ingredients")
     public void testOrderCreationWithoutIngredients() {
-    testUser = User.create("test@example.com", "password123", "Test User");
-        burgerServiceUser.createUser(testUser);
-    // Вход в систему для получения accessToken
-    ValidatableResponse response = burgerServiceUser.login(new Credentials(testUser.getEmail(), testUser.getPassword()));
-    accessToken = response.extract().jsonPath().getString("accessToken");
-        Order order = new Order();
-        // Создание заказа без ингредиентов
+        testUser = User.create(Faker.instance().internet().emailAddress(), "password", Faker.instance().name().username());
+        burgerServiceUser.createUser(testUser)
+                .statusCode(200);
+        Credentials credentials = Credentials.fromUser(testUser);
+        ValidatableResponse userLogin = burgerServiceUser.login(credentials);
+        userLogin.assertThat()
+                .statusCode(200)
+                .and().body("success", equalTo(true));
+
+        accessToken = userLogin.extract().path("accessToken");
+        Order order = new Order(List.of("", ""));
         ValidatableResponse response = burgerServiceUser.createOrder(order);
         response.statusCode(400)
                 .body("success", equalTo(false))
