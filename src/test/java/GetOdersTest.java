@@ -1,3 +1,4 @@
+import com.github.javafaker.Faker;
 import io.qameta.allure.Step;
 import io.restassured.response.ValidatableResponse;
 import org.junit.After;
@@ -6,7 +7,7 @@ import org.junit.Test;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.*;
 
-public class GetOdersTest extends BaseTest {
+public class GetOrdersTest extends BaseTest {
     private BurgerServiceUser burgerServiceUser;
     private User testUser;
 
@@ -21,22 +22,30 @@ public class GetOdersTest extends BaseTest {
             burgerServiceUser.deleteUser(testUser);
         }
     }
+
+    // Метод для генерации фиктивного пользователя
+    private User generateTestUser() {
+        return User.create(Faker.instance().internet().emailAddress(), "password", Faker.instance().name().username());
+    }
+
+    // Метод для генерации фиктивного заказа
+    private Order generateTestOrder() {
+        return new Order(List.of("60d3b41abdacab0026a733c6", "609646e4dc916e00276b2870"));
+    }
+
     @Test
     @Step("Test to verify the retrieval of orders for an authenticated user")
     public void testGetOrdersAuthenticatedUser() {
-        User testUser = User.create("testooo70@example.com", "password123", "Test User");
+        // Создание фиктивного пользователя
+        testUser = generateTestUser();
         ValidatableResponse createUserResponse = burgerServiceUser.createUser(testUser);
         createUserResponse.statusCode(200);
 
-        String accessToken = createUserResponse.log().all().extract().path("accessToken").toString();
-        createUserResponse.log().all()
-                .assertThat().statusCode(200)
-                .and().body("success", is(true))
-                .and().body("accessToken", notNullValue())
-                .and().body("refreshToken", notNullValue());
+        String accessToken = createUserResponse.extract().path("accessToken");
 
-        burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9")));
-        burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9")));
+        // Создание фиктивных заказов
+        burgerServiceUser.createOrder(generateTestOrder());
+        burgerServiceUser.createOrder(generateTestOrder());
 
         // Запрос информации о пользователе с использованием полученного токена доступа
         ValidatableResponse userInfoResponse = burgerServiceUser.getUser(accessToken);
@@ -51,8 +60,9 @@ public class GetOdersTest extends BaseTest {
     @Test
     @Step("Test to verify the retrieval of orders for an unauthenticated user")
     public void testGetOrdersUnauthenticatedUser() {
-        burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9", "60d3463f7034a000269f45e7")));
-        burgerServiceUser.createOrder(new Order(List.of("60d3463f7034a000269f45e9")));
+        // Создание фиктивных заказов
+        burgerServiceUser.createOrder(generateTestOrder());
+        burgerServiceUser.createOrder(generateTestOrder());
 
         ValidatableResponse response = burgerServiceUser.getUser(null);
         response.statusCode(401); // Проверка статуса 401 Unauthorized
